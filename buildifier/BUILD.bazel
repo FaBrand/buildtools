@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar", "pkg_deb")
 
 go_binary(
     name = "buildifier",
@@ -8,6 +9,28 @@ go_binary(
         "main.buildVersion": "{STABLE_buildVersion}",
         "main.buildScmRevision": "{STABLE_buildScmRevision}",
     },
+)
+
+pkg_tar(
+    name = "buildifier-tar",
+    strip_prefix = "linux_amd64_stripped",
+    package_dir = "/opt/bazel-buildifier",
+    srcs = [
+        ":buildifier",
+    ],
+    mode = "0755",
+    symlinks = { "/usr/local/bin/buildifier": "/opt/bazel-buildifier/buildifier"},
+)
+
+pkg_deb(
+    name = "buildifier-deb-pkg",
+    data = ":buildifier-tar",
+    depends = [],
+    description_file = "debian/description",
+    homepage = "https://github.com/bazelbuild/buildtools",
+    maintainer = "https://github.com/bazelbuild/buildtools",
+    package = "bazel-buildifier",
+    version = "0.0.1",
 )
 
 # Test that the buildifier binary works
